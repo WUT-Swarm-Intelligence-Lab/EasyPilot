@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import math
 import time
 from typing import TYPE_CHECKING
 
@@ -28,12 +27,16 @@ class Drone:
         uri: str | None = None,
         takeoff_height: float = 0.5,
         controller: int | None = None,
+        interpolate: bool = False,
+        max_dist: float = 0.1,
     ):
         self._conn: DroneConnection | None = None
         self._ctrl: DroneController | None = None
         self._current_waypoint: Position | None = None
         self._takeoff_height = takeoff_height
         self._controller = controller
+        self._interpolate = interpolate
+        self._max_dist = max_dist
         if uri:
             self.connect(uri)
 
@@ -66,11 +69,16 @@ class Drone:
 
     def goto(self, waypoint: list[float] | Position, yaw: float = 0.0) -> None:
         if isinstance(waypoint, Position):
-            pos = waypoint
+            target = waypoint
         else:
-            pos = Position(x=waypoint[0], y=waypoint[1], z=waypoint[2])
-        self._current_waypoint = pos
-        self._ctrl.set_waypoint(pos, Rotation(yaw=yaw))
+            target = Position(x=waypoint[0], y=waypoint[1], z=waypoint[2])
+
+        start = self._ctrl.get_position()
+        points = self._interpolate_path(start, target, self._max_dist)
+
+        for point in points:
+            self._current_waypoint = point
+            self._ctrl.set_waypoint(point, Rotation(yaw=yaw))
 
     def is_moving(self) -> bool:
         if self._current_waypoint is None:
@@ -92,11 +100,28 @@ class Drone:
     def position(self) -> Position:
         return self._ctrl.get_position()
 
+    def _interpolate_path(
+        self, start: Position, end: Position, max_dist: float
+    ) -> list[Position]:
+        dist = start.distance_to(end)
+        if dist <= 0.0:
+            return [end]
+
+        num_segments = max(1, round(dist / max_dist))
+        points = []
+        for i in range(1, num_segments + 1):
+            t = i / num_segments
+            points.append(
+                Position(
+                    x=start.x + (end.x - start.x) * t,
+                    y=start.y + (end.y - start.y) * t,
+                    z=start.z + (end.z - start.z) * t,
+                )
+            )
+        return points
+
     def _reached(self, current: Position, target: Position) -> bool:
-        dx = current.x - target.x
-        dy = current.y - target.y
-        dz = current.z - target.z
-        return math.sqrt(dx * dx + dy * dy + dz * dz) < ARRIVAL_THRESHOLD
+        return current.distance_to(target) < ARRIVAL_THRESHOLD
 
     def __enter__(self) -> Drone:
         return self
