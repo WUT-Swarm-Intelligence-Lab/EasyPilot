@@ -5,8 +5,12 @@ import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from drone_control.connection import DroneConnection
 
+import numpy as np
+from drone_control.camera import WifiCamera
 from drone_control.connection import DroneConnection as _DroneConnection
 from cflib.positioning.position_hl_commander import PositionHlCommander
 from drone_control.controller import DroneController
@@ -29,6 +33,8 @@ class Drone:
         controller: int | None = None,
         interpolate: bool = False,
         max_dist: float = 0.1,
+        camera_ip: str | None = None,
+        camera_port: int = 5000,
     ):
         self._conn: DroneConnection | None = None
         self._ctrl: DroneController | None = None
@@ -37,6 +43,9 @@ class Drone:
         self._controller = controller
         self._interpolate = interpolate
         self._max_dist = max_dist
+        self._camera: WifiCamera | None = None
+        self._camera_ip = camera_ip
+        self._camera_port = camera_port
         if uri:
             self.connect(uri)
 
@@ -59,10 +68,30 @@ class Drone:
         )
 
     def disconnect(self) -> None:
+        self.camera_stop()
         if self._conn is not None:
             self._conn.disconnect()
             self._conn = None
             self._ctrl = None
+
+    def camera_feed(self, callback: Callable[[np.ndarray], None]) -> None:
+        if self._camera_ip is None:
+            raise RuntimeError("No camera_ip set. Pass camera_ip to Drone().")
+        if self._camera is None:
+            self._camera = WifiCamera(
+                ip=self._camera_ip, port=self._camera_port
+            )
+        self._camera.start(callback)
+
+    def camera_wait_until_ready(self, timeout: float | None = None) -> bool:
+        if self._camera is None:
+            return False
+        return self._camera.wait_until_ready(timeout=timeout)
+
+    def camera_stop(self) -> None:
+        if self._camera is not None:
+            self._camera.stop()
+            self._camera = None
 
     def takeoff(self, height: float | None = None) -> None:
         self._ctrl.takeoff(height)
