@@ -18,6 +18,7 @@ def main() -> None:
 
     drone = Drone(camera_ip="192.168.4.1")
     drone.find(0)
+    drone.set_forward_fly(True)
     drone.camera_feed(on_frame)
     drone.camera_wait_until_ready()
     drone.takeoff(height=0.5)

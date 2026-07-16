@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import time
 from typing import TYPE_CHECKING
 
@@ -35,6 +36,7 @@ class Drone:
         max_dist: float = 0.1,
         camera_ip: str | None = None,
         camera_port: int = 5000,
+        forward_fly: bool = False,
     ):
         self._conn: DroneConnection | None = None
         self._ctrl: DroneController | None = None
@@ -46,6 +48,7 @@ class Drone:
         self._camera: WifiCamera | None = None
         self._camera_ip = camera_ip
         self._camera_port = camera_port
+        self._forward_fly = forward_fly
         if uri:
             self.connect(uri)
 
@@ -96,6 +99,9 @@ class Drone:
     def takeoff(self, height: float | None = None) -> None:
         self._ctrl.takeoff(height)
 
+    def set_forward_fly(self, enabled: bool) -> None:
+        self._forward_fly = enabled
+
     def goto(self, waypoint: list[float] | Position, yaw: float = 0.0) -> None:
         if isinstance(waypoint, Position):
             target = waypoint
@@ -103,6 +109,10 @@ class Drone:
             target = Position(x=waypoint[0], y=waypoint[1], z=waypoint[2])
 
         start = self._ctrl.get_position()
+
+        if self._forward_fly:
+            yaw = math.atan2(target.y - start.y, target.x - start.x)
+
         points = self._interpolate_path(start, target, self._max_dist)
 
         for point in points:
