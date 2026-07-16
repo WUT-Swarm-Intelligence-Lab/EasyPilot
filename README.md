@@ -81,6 +81,8 @@ if __name__ == "__main__":
   <img src="https://contrib.rocks/image?repo=WUT-Swarm-Intelligence-Lab/EasyPilot" />
 </a>
 
+The code building that repository was originaly designed by: [KlaNiedz](https://github.com/KlaNiedz)
+
 ## StarTracker
 
 [![Star History Chart](https://api.star-history.com/svg?repos=WUT-Swarm-Intelligence-Lab/EasyPilot&type=Date)](https://star-history.com/#WUT-Swarm-Intelligence-Lab/EasyPilot&Date)
