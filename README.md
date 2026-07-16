@@ -77,11 +77,13 @@ if __name__ == "__main__":
 
 ## Contributors
 
+<a href="https://github.com/KlaNiedz"><img src="https://github.com/KlaNiedz.png" width="100" style="border-radius: 50%;" alt="KlaNiedz" /></a>
 <a href="https://github.com/WUT-Swarm-Intelligence-Lab/EasyPilot/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=WUT-Swarm-Intelligence-Lab/EasyPilot" />
 </a>
 
 The code building that repository was originaly designed by: [KlaNiedz](https://github.com/KlaNiedz)
+
 
 ## StarTracker
 
