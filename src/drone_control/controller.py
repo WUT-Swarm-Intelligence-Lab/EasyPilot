@@ -103,7 +103,6 @@ class DroneController:
 
         logger.info("Moving by dx=%.2f, dy=%.2f, dz=%.2f, dyaw=%.1f", dx, dy, dz, dyaw)
         self._phc.move_distance(dx, dy, dz, 0.2)
-        self._phc.turn_left(dyaw)
 
     def hover(self, seconds: float = 1.0) -> None:
         if self._phc is None:

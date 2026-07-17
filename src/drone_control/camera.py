@@ -21,8 +21,8 @@ FORMAT_JPEG = 1
 RAW_WIDTH = 324
 RAW_HEIGHT = 244
 
-
-class WifiCamera:
+from drone_control.flightReady import FlightReady, requires_flight_ready
+class WifiCamera(FlightReady):
 
     def __init__(self, ip: str = DEFAULT_IP, port: int = DEFAULT_PORT):
         self._ip = ip
@@ -32,6 +32,7 @@ class WifiCamera:
         self._running = False
         self._callback: Callable[[np.ndarray], None] | None = None
         self._ready = threading.Event()
+        super().__init__()
 
     def start(self, callback: Callable[[np.ndarray], None]) -> None:
         if self._running:
@@ -113,6 +114,7 @@ class WifiCamera:
             raise ValueError(f"Unknown image format: {fmt}")
 
     def _stream_loop(self) -> None:
+        self.remove_before_flight()
         while self._running:
             try:
                 if self._sock is None:

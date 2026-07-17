@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 ARRIVAL_THRESHOLD = 0.15
 
-
-class Drone:
+from drone_control.flightReady import FlightReady, requires_flight_ready
+class Drone(FlightReady):
     CONTROLLER_PID = PositionHlCommander.CONTROLLER_PID
     CONTROLLER_MELLINGER = PositionHlCommander.CONTROLLER_MELLINGER
 
@@ -96,12 +96,14 @@ class Drone:
             self._camera.stop()
             self._camera = None
 
+    @requires_flight_ready
     def takeoff(self, height: float | None = None) -> None:
         self._ctrl.takeoff(height)
 
     def set_forward_fly(self, enabled: bool) -> None:
         self._forward_fly = enabled
 
+    @requires_flight_ready
     def goto(self, waypoint: list[float] | Position, yaw: float = 0.0) -> None:
         if isinstance(waypoint, Position):
             target = waypoint
@@ -129,9 +131,24 @@ class Drone:
         while self.is_moving():
             time.sleep(poll)
 
+    @requires_flight_ready
+    def move(self, dx: float = 0, dy: float = 0, dz: float = 0, dyaw: float = 0) -> None:
+        start = self.position
+        target = Position(x=start.x + dx, y=start.y + dy, z=start.z + dz)
+        points = self._interpolate_path(start, target, self._max_dist)
+        for point in points:
+            self._current_waypoint = point
+            self._ctrl.set_waypoint(point)
+            while self.is_moving():
+                pos = self.position
+                print(f"  pos=({pos.x:.2f}, {pos.y:.2f}, {pos.z:.2f})  wp=({point.x:.2f}, {point.y:.2f}, {point.z:.2f})")
+                time.sleep(0.2)
+
+    @requires_flight_ready
     def land(self) -> None:
         self._ctrl.land()
 
+    @requires_flight_ready
     def stop(self) -> None:
         self._ctrl.stop()
 

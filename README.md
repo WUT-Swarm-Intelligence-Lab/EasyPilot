@@ -84,6 +84,8 @@ if __name__ == "__main__":
 
 The code building that repository was originaly designed by: [KlaNiedz](https://github.com/KlaNiedz)
 
+<a href="https://github.com/KlaNiedz"><img src="https://github.com/KlaNiedz.png?size=100" width="100" style="border-radius: 50%;" alt="KlaNiedz" /></a>
+
 
 ## StarTracker
 
